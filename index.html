@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语单词闪卡系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .mode-switch {
+            display: flex;
+            background: #f0f0f0;
+            padding: 5px;
+            border-radius: 30px;
+            margin: 20px 30px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px 30px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .progress-section {
+            padding: 0 30px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #f0f0f0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .card-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .card-wrapper {
+            perspective: 1000px;
+            width: 100%;
+            max-width: 380px;
+            height: 600px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            /* 淡黄色背景 */
+            background: linear-gradient(145deg, #fffde7 0%, #fff9c4 100%);
+            border: 2px solid #fdd835;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(145deg, #fff9c4 0%, #fff59d 100%);
+        }
+
+        .card-word {
+            font-size: 36px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .card-pronunciation {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .card-example {
+            font-size: 16px;
+            color: #555;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .card-meaning {
+            font-size: 20px;
+            color: #333;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .audio-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .audio-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .audio-btn:active {
+            transform: translateY(0);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-know {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+        }
+
+        .btn-forgot {
+            background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
+            color: white;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+            color: white;
+        }
+
+        .btn-prev {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .review-schedule {
+            padding: 30px;
+            background: #f9f9f9;
+            margin-top: 20px;
+        }
+
+        .review-schedule h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .review-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .review-table th,
+        .review-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .review-table th {
+            background: #f0f0f0;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .review-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .schedule-due {
+            color: #f44336;
+            font-weight: 600;
+        }
+
+        .schedule-ok {
+            color: #4caf50;
+            font-weight: 600;
+        }
+
+        .flip-hint {
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-new {
+            background: #e3f2fd;
+            color: #2196f3;
+        }
+
+        .badge-review {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .badge-mastered {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .card-wrapper {
+                height: 500px;
+            }
+
+            .card-word {
+                font-size: 28px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 英语单词闪卡系统</h1>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <span>📖</span>
+                    <span id="totalWords">0</span> 词汇
+                </div>
+                <div class="stat-item">
+                    <span>✅</span>
+                    <span id="masteredWords">0</span> 已掌握
+                </div>
+                <div class="stat-item">
+                    <span>🔄</span>
+                    <span id="reviewWords">0</span> 待复习
+                </div>
+            </div>
+        </div>
+
+        <div class="mode-switch">
+            <button class="mode-btn active" onclick="switchMode('learn')" id="learnModeBtn">
+                📖 学习模式
+            </button>
+            <button class="mode-btn" onclick="switchMode('review')" id="reviewModeBtn">
+                🔄 复习模式
+            </button>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-text">
+                <span id="progressLabel">学习进度</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="card-container" id="cardContainer">
+            <div class="card-wrapper" id="cardWrapper" onclick="flipCard()">
+                <div class="card" id="flashcard">
+                    <div class="card-face">
+                        <div class="card-word" id="cardWord">点击开始学习</div>
+                        <div class="card-pronunciation" id="cardPronunciation"></div>
+                        <div class="card-example" id="cardExample"></div>
+                        <button class="audio-btn" onclick="event.stopPropagation(); playAudio('word')">
+                            🔊 播放单词发音
+                        </button>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="card-meaning" id="cardMeaning"></div>
+                        <button class="audio-btn" onclick="event.stopPropagation(); playAudio('meaning')">
+                            🔊 播放中文释义
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="flip-hint">
+                <span>👆 点击卡片翻转</span>
+            </div>
+        </div>
+
+        <div class="controls" id="controls">
+            <button class="control-btn btn-prev" onclick="prevCard()" id="prevBtn">
+                ⬅️ 上一个
+            </button>
+            <button class="control-btn btn-know" onclick="markAsKnow()" id="knowBtn">
+                ✅ 认识
+            </button>
+            <button class="control-btn btn-forgot" onclick="markAsForgot()" id="forgotBtn">
+                ❌ 不认识
+            </button>
+            <button class="control-btn btn-next" onclick="nextCard()" id="nextBtn">
+                下一个 ➡️
+            </button>
+        </div>
+
+        <div class="review-schedule" id="reviewSchedule" style="display: none;">
+            <h3>📅 复习计划 (艾宾浩斯曲线)</h3>
+            <table class="review-table">
+                <thead>
+                    <tr>
+                        <th>单词</th>
+                        <th>当前状态</th>
+                        <th>下次复习</th>
+                        <th>间隔</th>
+                    </tr>
+                </thead>
+                <tbody id="reviewTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 词汇数据
+        const vocabularyData = [
+    { word: "immediate", meaning: "立即的，立刻的，马上", example: "We need immediate action to solve this problem." },
+    { word: "clear", meaning: "清楚的，清晰的", example: "The instructions were very clear and easy to follow." },
+    { word: "cautious", meaning: "小心翼翼的", example: "Be cautious when driving in bad weather." },
+    { word: "vivid", meaning: "生动的，逼真的", example: "I have a vivid memory of my childhood." },
+    { word: "exactly", meaning: "确切地,精确地;恰好地;完全正确", example: "That is exactly what I was looking for." },
+    { word: "fortunately", meaning: "幸运地", example: "Fortunately, no one was hurt in the accident." },
+    { word: "surprisingly", meaning: "令人惊讶的", example: "Surprisingly, he passed the exam with flying colors." },
+    { word: "hardly", meaning: "几乎不", example: "I could hardly hear what he was saying." },
+    { word: "instead", meaning: "代替，相反", example: "Let us go to the park instead of the mall." },
+    { word: "properly", meaning: "适当地；正确地；恰当地", example: "You must properly store the food in the refrigerator." },
+    { word: "specially", meaning: "专门", example: "This tool was specially designed for this task." },
+    { word: "reliable", meaning: "可靠的，可信赖的", example: "She is a reliable friend who always helps." },
+    { word: "simply", meaning: "简单地；仅仅，只不过", example: "It is simply a matter of time." },
+    { word: "namely", meaning: "即，也就是", example: "There is one solution, namely, to work together." },
+    { word: "not nearly / far from", meaning: "远非,远远不,一点也不", example: "The result is not nearly what we expected." },
+    { word: "patient", meaning: "耐心的；病人", example: "Be patient, good things take time." },
+    { word: "plain", meaning: "简单的，朴素的", example: "The truth is plain to see." },
+    { word: "familiar", meaning: "熟悉的", example: "The song sounded familiar to me." },
+    { word: "lucky", meaning: "幸运的", example: "You were lucky to win the prize." },
+    { word: "amazing", meaning: "令人惊异的", example: "The view from the top was amazing." },
+    { word: "accidentally", meaning: "偶然地;意外地;附带地", example: "I accidentally dropped my phone." },
+    { word: "silent", meaning: "沉默的", example: "He remained silent during the meeting." },
+    { word: "calm", meaning: "平静的，冷静的", example: "Stay calm and think carefully." },
+    { word: "secret", meaning: "秘密的", example: "We kept the secret between us." },
+    { word: "otherwise", meaning: "否则", example: "You must study hard, otherwise you will fail." },
+    { word: "meanwhile", meaning: "期间，同时", example: "Meanwhile, the others were waiting." },
+    { word: "besides", meaning: "除…..以外还有", example: "Besides English, she speaks French." },
+    { word: "efficient", meaning: "高效的，有效的", example: "This new method is more efficient." },
+    { word: "flexible", meaning: "灵活的", example: "Our schedule is quite flexible." },
+    { word: "complex", meaning: "复杂的", example: "The problem is more complex than it seems." },
+    { word: "smooth", meaning: "平稳的，光滑的，顺利的", example: "The road was smooth and easy to drive." },
+    { word: "regularly", meaning: "定期的，有规律的", example: "You should exercise regularly." },
+    { word: "sensitive", meaning: "敏感的，体贴的", example: "She is sensitive to criticism." },
+    { word: "honest", meaning: "诚实的", example: "Always be honest with your friends." },
+    { word: "confident", meaning: "自信的", example: "Be confident in your abilities." },
+    { word: "shy", meaning: "害羞的，羞涩的", example: "The shy boy rarely speaks in class." },
+    { word: "thoughtful", meaning: "深思的,沉思的;富有思想的", example: "He gave me a thoughtful gift." },
+    { word: "lighthearted and optimistic", meaning: "无忧无虑而且非常乐观的", example: "She has a lighthearted and optimistic personality." },
+    { word: "nevertheless", meaning: "然而", example: "It was raining; nevertheless, we went out." },
+    { word: "private", meaning: "私人的", example: "This is a private conversation." },
+    { word: "personal", meaning: "个人的", example: "Do not ask personal questions." },
+    { word: "unique", meaning: "唯一的,独一无二的;独特的", example: "Everyone has a unique talent." },
+    { word: "favorable", meaning: "赞同的，有利的", example: "The weather conditions are favorable." },
+    { word: "precious", meaning: "宝贵的，珍贵的", example: "Time is precious, do not waste it." },
+    { word: "essential", meaning: "必要的，重要的", example: "Water is essential for life." },
+    { word: "worthwhile", meaning: "值得的", example: "Reading is a worthwhile activity." },
+    { word: "physical", meaning: "身体的，物理的", example: "Regular physical exercise is important." },
+    { word: "sudden", meaning: "突然的", example: "There was a sudden change in plans." },
+    { word: "merely", meaning: "仅仅，只", example: "He was merely joking." },
+    { word: "rarely", meaning: "罕见的", example: "I rarely eat fast food." },
+    { word: "splendidly", meaning: "极好地，灿烂地", example: "The team performed splendidly." },
+    { word: "increasingly", meaning: "越来越多地", example: "It is becoming increasingly popular." },
+    { word: "naturally", meaning: "自然地", example: "She learned to swim naturally." },
+    { word: "accurate", meaning: "精确的，准确的", example: "Please give me accurate information." },
+    { word: "ridiculous", meaning: "可笑的，荒谬", example: "That idea is completely ridiculous." },
+    { word: "urgent", meaning: "紧急的，急迫的", example: "This is an urgent matter." },
+    { word: "shallow", meaning: "浅的，肤浅的", example: "The river is shallow here." },
+    { word: "frequently", meaning: "经常地,频繁", example: "We meet frequently to discuss progress." },
+    { word: "especially / particularly", meaning: "特别地，尤其地", example: "I like fruits, especially apples." },
+    { word: "obviously / apparently", meaning: "显而易见", example: "Obviously, he is very talented." },
+    { word: "necessarily", meaning: "必要地，必须地，必然地", example: "More money does not necessarily mean happiness." },
+    { word: "generally", meaning: "一般地，通常地", example: "Generally, I agree with your point." },
+    { word: "eventually", meaning: "最终，最后", example: "Eventually, you will understand." },
+    { word: "adoptable", meaning: "可采用的,可收养的", example: "The child is adoptable." },
+    { word: "acceptable", meaning: "可以接受的", example: "Your proposal is acceptable." },
+    { word: "available", meaning: "可利用的,可使用的，可得到的", example: "Is this seat available?" },
+    { word: "accessible", meaning: "易接近的，易受影响的，可理解的", example: "The building is accessible to wheelchair users." },
+    { word: "relatively", meaning: "相对地，比较地", example: "The task was relatively easy." },
+    { word: "approximately", meaning: "大约", example: "It takes approximately two hours." },
+    { word: "absolutely", meaning: "绝对正确地", example: "I am absolutely certain about this." },
+    { word: "punctual", meaning: "守时的", example: "He is always punctual for meetings." },
+    { word: "gentle", meaning: "温柔的", example: "Be gentle with the baby." },
+    { word: "neatly", meaning: "整洁地", example: "She arranged her room neatly." },
+    { word: "entirely", meaning: "完全地", example: "I entirely agree with you." },
+    { word: "highly", meaning: "高度地，非常地", example: "She is highly qualified for the job." },
+    { word: "strongly", meaning: "强烈地，坚固地", example: "I strongly recommend this book." },
+    { word: "extremely", meaning: "极端地，非常", example: "It was extremely cold yesterday." },
+    { word: "reasonably", meaning: "合乎情理地", example: "The price is reasonably affordable." },
+    { word: "eagerly", meaning: "热切地；渴望地", example: "We eagerly awaited the results." },
+    { word: "badly", meaning: "很，非常", example: "He badly wanted to win." },
+    { word: "slightly", meaning: "稍微，轻微地", example: "The temperature dropped slightly." },
+    { word: "equally", meaning: "平等地", example: "They were treated equally." },
+    { word: "lately", meaning: "最近", example: "I have been busy lately." },
+    { word: "enthusiastic", meaning: "热情的;热烈的;热心的", example: "She is enthusiastic about learning." },
+    { word: "energetic", meaning: "精力充沛的，有活力的", example: "He is an energetic young man." },
+    { word: "talkative", meaning: "喜欢说话的;多嘴的;健谈的", example: "The talkative girl never stops chatting." },
+    { word: "impressive", meaning: "影象深刻的", example: "His performance was impressive." },
+    { word: "traditional", meaning: "传统的", example: "We follow traditional customs." },
+    { word: "practical", meaning: "实践的,实际的", example: "We need a practical solution." },
+    { word: "similar", meaning: "类似的，相似的", example: "Our opinions are similar." },
+    { word: "convenient", meaning: "方便的，便利的", example: "The location is very convenient." },
+    { word: "sooner or later", meaning: "迟早，早晚", example: "Sooner or later, you will succeed." },
+    { word: "more or less", meaning: "或多或少，差不多，几乎", example: "The work is more or less finished." },
+    { word: "once in a while", meaning: "偶尔，时不时地", example: "Once in a while, we go to the movies." },
+    { word: "now and then", meaning: "偶尔，有时", example: "I visit my grandparents now and then." },
+    { word: "willingly", meaning: "情愿地", example: "She willingly helped her friend." },
+    { word: "unexpectedly", meaning: "出乎意料地", example: "The meeting ended unexpectedly early." },
+    { word: "unwillingly", meaning: "不情愿地", example: "He unwillingly accepted the task." },
+    { word: "unforgettable", meaning: "难忘的", example: "The trip was unforgettable." },
+    { word: "doubtful", meaning: "可疑的；令人生疑的；不能确定的", example: "I am doubtful about his explanation." },
+    { word: "hardly / scarcely", meaning: "几乎不", example: "I could hardly believe my eyes." },
+    { word: "respectable", meaning: "值得尊敬的", example: "He has a respectable career." },
+    { word: "respectful", meaning: "恭敬的，有礼貌的", example: "Be respectful to your elders." },
+    { word: "distinguished", meaning: "著名的；卓著的；高贵的", example: "She is a distinguished scientist." },
+    { word: "complicated", meaning: "难懂的，复杂的", example: "The instructions are too complicated." },
+    { word: "awkward / clumsy", meaning: "尴尬的笨拙的", example: "I felt awkward at the party." },
+    { word: "previous", meaning: "以前的", example: "I cannot remember my previous password." },
+    { word: "nan", meaning: "nan", example: "This is how we use the word \"nan\" in English." },
+    { word: "nan", meaning: "nan", example: "This is how we use the word \"nan\" in English." },
+    { word: "英文词汇", meaning: "中文释义", example: "This is how we use the word \"英文词汇\" in English." },
+    { word: "occasion", meaning: "场合", example: "This is how we use the word \"occasion\" in English." },
+    { word: "situation", meaning: "情况，处境", example: "This is how we use the word \"situation\" in English." },
+    { word: "take over", meaning: "接管", example: "This is how we use the word \"take over\" in English." },
+    { word: "exchange", meaning: "交换", example: "This is how we use the word \"exchange\" in English." },
+    { word: "command", meaning: "命令", example: "This is how we use the word \"command\" in English." },
+    { word: "confirm", meaning: "证实", example: "This is how we use the word \"confirm\" in English." },
+    { word: "cultivate", meaning: "培养", example: "This is how we use the word \"cultivate\" in English." },
+    { word: "prosperously", meaning: "繁荣的", example: "This is how we use the word \"prosperously\" in English." },
+    { word: "suspect", meaning: "怀疑", example: "This is how we use the word \"suspect\" in English." },
+    { word: "relatively", meaning: "相对的，比较的", example: "The task was relatively easy." },
+    { word: "acknowledge", meaning: "承认，鸣谢", example: "This is how we use the word \"acknowledge\" in English." },
+    { word: "ambition", meaning: "野心", example: "This is how we use the word \"ambition\" in English." },
+    { word: "qualities", meaning: "质量，品质", example: "This is how we use the word \"qualities\" in English." },
+    { word: "protection", meaning: "保护", example: "This is how we use the word \"protection\" in English." },
+    { word: "equally", meaning: "平等地", example: "They were treated equally." },
+    { word: "promise", meaning: "承诺", example: "This is how we use the word \"promise\" in English." },
+    { word: "clearly", meaning: "清楚地", example: "This is how we use the word \"clearly\" in English." },
+    { word: "grateful", meaning: "感激的", example: "This is how we use the word \"grateful\" in English." },
+    { word: "remove", meaning: "移", example: "This is how we use the word \"remove\" in English." },
+    { word: "force", meaning: "强迫", example: "This is how we use the word \"force\" in English." },
+    { word: "apologize", meaning: "道歉", example: "This is how we use the word \"apologize\" in English." },
+    { word: "terrible", meaning: "恐怖的", example: "This is how we use the word \"terrible\" in English." },
+    { word: "stubborn", meaning: "固执的", example: "This is how we use the word \"stubborn\" in English." },
+    { word: "actively", meaning: "积极地，主动", example: "This is how we use the word \"actively\" in English." },
+    { word: "spiritual", meaning: "精神的，心灵的", example: "This is how we use the word \"spiritual\" in English." },
+    { word: "magical", meaning: "魔力的", example: "This is how we use the word \"magical\" in English." },
+    { word: "willingly", meaning: "愿意地", example: "She willingly helped her friend." },
+    { word: "strengthen", meaning: "加强", example: "This is how we use the word \"strengthen\" in English." },
+    { word: "image", meaning: "形象", example: "This is how we use the word \"image\" in English." },
+    { word: "complexity", meaning: "复杂", example: "This is how we use the word \"complexity\" in English." },
+    { word: "cautious", meaning: "小心的", example: "Be cautious when driving in bad weather." },
+    { word: "manage", meaning: "成功做成", example: "This is how we use the word \"manage\" in English." },
+    { word: "prejudice", meaning: "偏见", example: "This is how we use the word \"prejudice\" in English." },
+    { word: "economic", meaning: "经济的，合算的", example: "This is how we use the word \"economic\" in English." },
+    { word: "academic", meaning: "学术的", example: "This is how we use the word \"academic\" in English." },
+    { word: "control", meaning: "控制", example: "This is how we use the word \"control\" in English." },
+    { word: "adopt", meaning: "收养，采取", example: "This is how we use the word \"adopt\" in English." },
+    { word: "consume", meaning: "消费", example: "This is how we use the word \"consume\" in English." },
+    { word: "unique", meaning: "独一无二的", example: "Everyone has a unique talent." },
+    { word: "beneficial", meaning: "有益的", example: "This is how we use the word \"beneficial\" in English." },
+    { word: "varied", meaning: "各种各样的", example: "This is how we use the word \"varied\" in English." },
+    { word: "demanding", meaning: "要求高的", example: "This is how we use the word \"demanding\" in English." },
+    { word: "appropriate", meaning: "合理的", example: "This is how we use the word \"appropriate\" in English." },
+    { word: "entertainment", meaning: "娱乐", example: "This is how we use the word \"entertainment\" in English." },
+    { word: "deliberately", meaning: "故意地", example: "This is how we use the word \"deliberately\" in English." },
+    { word: "purchase", meaning: "购买", example: "This is how we use the word \"purchase\" in English." },
+    { word: "tough", meaning: "艰难的", example: "This is how we use the word \"tough\" in English." },
+    { word: "bright", meaning: "明亮的", example: "This is how we use the word \"bright\" in English." },
+    { word: "remain", meaning: "遗留，留下，保持", example: "This is how we use the word \"remain\" in English." },
+    { word: "terrify", meaning: "使害怕", example: "This is how we use the word \"terrify\" in English." },
+    { word: "disappointing", meaning: "令人失望的", example: "This is how we use the word \"disappointing\" in English." },
+    { word: "formal", meaning: "正式的", example: "This is how we use the word \"formal\" in English." },
+    { word: "desire", meaning: "愿望", example: "This is how we use the word \"desire\" in English." },
+    { word: "share", meaning: "分享，共有", example: "This is how we use the word \"share\" in English." },
+    { word: "fulfill", meaning: "履行（诺言），执行（命令）", example: "This is how we use the word \"fulfill\" in English." },
+    { word: "admit", meaning: "承认", example: "This is how we use the word \"admit\" in English." },
+    { word: "evident", meaning: "明显的", example: "This is how we use the word \"evident\" in English." },
+    { word: "consequently", meaning: "因此所以", example: "This is how we use the word \"consequently\" in English." },
+    { word: "accustomed", meaning: "习惯的", example: "This is how we use the word \"accustomed\" in English." },
+    { word: "accumulate", meaning: "积累", example: "This is how we use the word \"accumulate\" in English." },
+    { word: "participate", meaning: "参加", example: "This is how we use the word \"participate\" in English." },
+    { word: "absence", meaning: "缺席", example: "This is how we use the word \"absence\" in English." },
+    { word: "presence", meaning: "出席", example: "This is how we use the word \"presence\" in English." },
+    { word: "bravery", meaning: "勇敢", example: "This is how we use the word \"bravery\" in English." },
+    { word: "horror", meaning: "恐惧", example: "This is how we use the word \"horror\" in English." },
+    { word: "spotless", meaning: "无暇的", example: "This is how we use the word \"spotless\" in English." },
+    { word: "fundamental", meaning: "基础的", example: "This is how we use the word \"fundamental\" in English." },
+    { word: "employment", meaning: "就业，雇用", example: "This is how we use the word \"employment\" in English." },
+    { word: "involve", meaning: "包含，使参与", example: "This is how we use the word \"involve\" in English." },
+    { word: "actually", meaning: "事实上", example: "This is how we use the word \"actually\" in English." },
+    { word: "harmony", meaning: "和谐", example: "This is how we use the word \"harmony\" in English." },
+    { word: "basically", meaning: "基本的", example: "This is how we use the word \"basically\" in English." },
+    { word: "inspire", meaning: "激发，启发", example: "This is how we use the word \"inspire\" in English." },
+    { word: "imitate", meaning: "模仿", example: "This is how we use the word \"imitate\" in English." },
+    { word: "awful", meaning: "糟糕的", example: "This is how we use the word \"awful\" in English." },
+    { word: "generous", meaning: "慷慨的大方的", example: "This is how we use the word \"generous\" in English." },
+    { word: "wealthy", meaning: "富有的", example: "This is how we use the word \"wealthy\" in English." },
+    { word: "function", meaning: "功能", example: "This is how we use the word \"function\" in English." },
+    { word: "stressful", meaning: "有压力", example: "This is how we use the word \"stressful\" in English." },
+    { word: "persistent", meaning: "持续的，坚持不懈的", example: "This is how we use the word \"persistent\" in English." },
+    { word: "reluctant", meaning: "勉强的", example: "This is how we use the word \"reluctant\" in English." },
+    { word: "diligent", meaning: "勤奋的", example: "This is how we use the word \"diligent\" in English." },
+    { word: "attentive", meaning: "注意的，周到", example: "This is how we use the word \"attentive\" in English." },
+    { word: "unbearable", meaning: "不能忍受的", example: "This is how we use the word \"unbearable\" in English." },
+    { word: "accommodation", meaning: "住所", example: "This is how we use the word \"accommodation\" in English." },
+    { word: "attractive", meaning: "有吸引力的", example: "This is how we use the word \"attractive\" in English." },
+    { word: "constant", meaning: "连续的", example: "This is how we use the word \"constant\" in English." },
+    { word: "brilliant", meaning: "明亮的，才华横溢的", example: "This is how we use the word \"brilliant\" in English." },
+    { word: "clumsy", meaning: "笨拙的", example: "This is how we use the word \"clumsy\" in English." },
+    { word: "declare", meaning: "宣布，声明", example: "This is how we use the word \"declare\" in English." },
+    { word: "obtain", meaning: "获得", example: "This is how we use the word \"obtain\" in English." },
+    { word: "interactive", meaning: "相互的互动的", example: "This is how we use the word \"interactive\" in English." },
+    { word: "incident", meaning: "事件", example: "This is how we use the word \"incident\" in English." },
+    { word: "adventure", meaning: "冒险", example: "This is how we use the word \"adventure\" in English." },
+    { word: "in particular", meaning: "尤其", example: "This is how we use the word \"in particular\" in English." },
+    { word: "in reality", meaning: "事实上", example: "This is how we use the word \"in reality\" in English." },
+    { word: "emphasize", meaning: "强调", example: "This is how we use the word \"emphasize\" in English." },
+    { word: "overlook", meaning: "忽视", example: "This is how we use the word \"overlook\" in English." },
+    { word: "deny", meaning: "否认", example: "This is how we use the word \"deny\" in English." },
+    { word: "ensure", meaning: "确保", example: "This is how we use the word \"ensure\" in English." },
+    { word: "financial", meaning: "金融", example: "This is how we use the word \"financial\" in English." },
+    { word: "budget", meaning: "预算", example: "This is how we use the word \"budget\" in English." },
+    { word: "on the whole", meaning: "整体上", example: "This is how we use the word \"on the whole\" in English." },
+    { word: "potential", meaning: "潜在的 潜能", example: "This is how we use the word \"potential\" in English." },
+    { word: "on the contrary", meaning: "相反", example: "This is how we use the word \"on the contrary\" in English." },
+    { word: "loyalty", meaning: "忠实", example: "This is how we use the word \"loyalty\" in English." },
+    { word: "assume", meaning: "假设", example: "This is how we use the word \"assume\" in English." },
+    { word: "establish", meaning: "建设", example: "This is how we use the word \"establish\" in English." },
+    { word: "flexible", meaning: "灵活的", example: "Our schedule is quite flexible." },
+    { word: "sensitive", meaning: "敏感的", example: "She is sensitive to criticism." },
+    { word: "essential", meaning: "必不可少的", example: "Water is essential for life." },
+    { word: "unfair", meaning: "不公平的", example: "This is how we use the word \"unfair\" in English." },
+    { word: "expectation", meaning: "期待", example: "This is how we use the word \"expectation\" in English." },
+    { word: "impression", meaning: "印象", example: "This is how we use the word \"impression\" in English." },
+    { word: "examination", meaning: "考试", example: "This is how we use the word \"examination\" in English." },
+    { word: "contribution", meaning: "贡献", example: "This is how we use the word \"contribution\" in English." },
+    { word: "certainty", meaning: "肯定", example: "This is how we use the word \"certainty\" in English." },
+    { word: "confuse", meaning: "使迷惑", example: "This is how we use the word \"confuse\" in English." },
+    { word: "trap", meaning: "陷阱，困住", example: "This is how we use the word \"trap\" in English." },
+    { word: "secondary", meaning: "次要的", example: "This is how we use the word \"secondary\" in English." },
+    { word: "turn up", meaning: "出现", example: "This is how we use the word \"turn up\" in English." },
+    { word: "show off", meaning: "炫耀", example: "This is how we use the word \"show off\" in English." },
+    { word: "break in", meaning: "闯进", example: "This is how we use the word \"break in\" in English." },
+    { word: "settle down", meaning: "定居", example: "This is how we use the word \"settle down\" in English." },
+    { word: "relief", meaning: "松了一口气", example: "This is how we use the word \"relief\" in English." },
+    { word: "justice", meaning: "公正", example: "This is how we use the word \"justice\" in English." },
+    { word: "previous", meaning: "先前的，早先的", example: "I cannot remember my previous password." },
+    { word: "instantly", meaning: "即使地", example: "This is how we use the word \"instantly\" in English." },
+    { word: "regularly", meaning: "规则地,规律地", example: "You should exercise regularly." },
+    { word: "occasionally", meaning: "偶尔地", example: "This is how we use the word \"occasionally\" in English." },
+    { word: "independence", meaning: "独立", example: "This is how we use the word \"independence\" in English." },
+    { word: "kept up with", meaning: "跟上", example: "This is how we use the word \"kept up with\" in English." },
+    { word: "catch up with", meaning: "追赶上", example: "This is how we use the word \"catch up with\" in English." },
+    { word: "come up with", meaning: "想出", example: "This is how we use the word \"come up with\" in English." },
+    { word: "put up with", meaning: "忍受", example: "This is how we use the word \"put up with\" in English." },
+    { word: "guarantee", meaning: "保证", example: "This is how we use the word \"guarantee\" in English." },
+    { word: "convince", meaning: "使......相信", example: "This is how we use the word \"convince\" in English." },
+    { word: "atmosphere", meaning: "气氛", example: "This is how we use the word \"atmosphere\" in English." },
+    { word: "sympathy", meaning: "同情", example: "This is how we use the word \"sympathy\" in English." },
+    { word: "punish", meaning: "惩罚", example: "This is how we use the word \"punish\" in English." },
+    { word: "puzzled", meaning: "感到迷惑的", example: "This is how we use the word \"puzzled\" in English." },
+    { word: "scared", meaning: "害怕的", example: "This is how we use the word \"scared\" in English." },
+    { word: "embarrassed", meaning: "尴尬的", example: "This is how we use the word \"embarrassed\" in English." },
+    { word: "reaction", meaning: "反应", example: "This is how we use the word \"reaction\" in English." },
+    { word: "forgiveness", meaning: "原谅", example: "This is how we use the word \"forgiveness\" in English." },
+    { word: "imaginary", meaning: "想象力丰富的", example: "This is how we use the word \"imaginary\" in English." },
+    { word: "be filled with", meaning: "充满", example: "This is how we use the word \"be filled with\" in English." },
+    { word: "be pleased with", meaning: "对...感到满意", example: "This is how we use the word \"be pleased with\" in English." },
+    { word: "be crowded with", meaning: "挤满", example: "This is how we use the word \"be crowded with\" in English." },
+    { word: "be equipped with", meaning: "给...配备上", example: "This is how we use the word \"be equipped with\" in English." },
+    { word: "possession", meaning: "财产", example: "This is how we use the word \"possession\" in English." },
+    { word: "precious", meaning: "珍贵的", example: "Time is precious, do not waste it." },
+    { word: "appreciate", meaning: "欣赏感激", example: "This is how we use the word \"appreciate\" in English." },
+    { word: "admire", meaning: "钦佩", example: "This is how we use the word \"admire\" in English." },
+    { word: "wander", meaning: "闲逛", example: "This is how we use the word \"wander\" in English." },
+    { word: "get rid of", meaning: "消除", example: "This is how we use the word \"get rid of\" in English." },
+    { word: "particularly", meaning: "尤其，特别", example: "This is how we use the word \"particularly\" in English." },
+    { word: "purpose", meaning: "目的", example: "This is how we use the word \"purpose\" in English." },
+    { word: "courage", meaning: "勇气", example: "This is how we use the word \"courage\" in English." },
+    { word: "determination", meaning: "决心", example: "This is how we use the word \"determination\" in English." },
+    { word: "roll", meaning: "滚", example: "This is how we use the word \"roll\" in English." },
+    { word: "drop", meaning: "掉下", example: "This is how we use the word \"drop\" in English." },
+    { word: "undoubtedly", meaning: "毫无疑问", example: "This is how we use the word \"undoubtedly\" in English." },
+    { word: "temporarily", meaning: "暂时的", example: "This is how we use the word \"temporarily\" in English." },
+    { word: "thankfully", meaning: "幸运的", example: "This is how we use the word \"thankfully\" in English." },
+    { word: "lean against", meaning: "靠着", example: "This is how we use the word \"lean against\" in English." },
+    { word: "challenge", meaning: "挑战", example: "This is how we use the word \"challenge\" in English." },
+    { word: "fierce", meaning: "激烈的", example: "This is how we use the word \"fierce\" in English." },
+    { word: "practical", meaning: "实际的,实用的", example: "We need a practical solution." },
+    { word: "straight", meaning: "直接的", example: "This is how we use the word \"straight\" in English." },
+    { word: "delighted", meaning: "高兴", example: "This is how we use the word \"delighted\" in English." },
+    { word: "congratulate", meaning: "恭喜", example: "This is how we use the word \"congratulate\" in English." },
+    { word: "faint", meaning: "眩晕", example: "This is how we use the word \"faint\" in English." },
+    { word: "consult", meaning: "咨询", example: "This is how we use the word \"consult\" in English." },
+    { word: "messy", meaning: "乱的", example: "This is how we use the word \"messy\" in English." },
+    { word: "review", meaning: "复习", example: "This is how we use the word \"review\" in English." },
+    { word: "curious", meaning: "好奇的", example: "This is how we use the word \"curious\" in English." },
+    { word: "graduation", meaning: "毕业", example: "This is how we use the word \"graduation\" in English." },
+    { word: "honor", meaning: "荣耀", example: "This is how we use the word \"honor\" in English." },
+    { word: "comfortable", meaning: "舒服的", example: "This is how we use the word \"comfortable\" in English." },
+    { word: "tiresome", meaning: "令人生厌的，无聊的", example: "This is how we use the word \"tiresome\" in English." },
+    { word: "set up", meaning: "建立", example: "This is how we use the word \"set up\" in English." },
+    { word: "hold up", meaning: "举起，支撑", example: "This is how we use the word \"hold up\" in English." },
+    { word: "pick up", meaning: "拾起", example: "This is how we use the word \"pick up\" in English." },
+    { word: "possess", meaning: "拥有", example: "This is how we use the word \"possess\" in English." },
+    { word: "crowded", meaning: "拥挤", example: "This is how we use the word \"crowded\" in English." },
+    { word: "march", meaning: "行进，前进", example: "This is how we use the word \"march\" in English." },
+    { word: "apartment", meaning: "公寓", example: "This is how we use the word \"apartment\" in English." },
+    { word: "frightened", meaning: "害怕的", example: "This is how we use the word \"frightened\" in English." },
+    { word: "turn out", meaning: "结果是，证明是", example: "This is how we use the word \"turn out\" in English." },
+    { word: "figure out", meaning: "辨认出", example: "This is how we use the word \"figure out\" in English." },
+    { word: "anxiously", meaning: "焦虑的", example: "This is how we use the word \"anxiously\" in English." },
+    { word: "hunt", meaning: "寻找，打猎", example: "This is how we use the word \"hunt\" in English." },
+    { word: "amused", meaning: "愉快的，顽皮的", example: "This is how we use the word \"amused\" in English." },
+    { word: "optimistic", meaning: "乐观的", example: "This is how we use the word \"optimistic\" in English." },
+    { word: "demonstrate", meaning: "证明，演示，显示", example: "This is how we use the word \"demonstrate\" in English." },
+    { word: "realize", meaning: "意识到", example: "This is how we use the word \"realize\" in English." },
+    { word: "meaningful", meaning: "意义的", example: "This is how we use the word \"meaningful\" in English." },
+    { word: "faithful", meaning: "忠实的，忠诚的", example: "This is how we use the word \"faithful\" in English." },
+    { word: "grasp", meaning: "抓住", example: "This is how we use the word \"grasp\" in English." },
+    { word: "decorate", meaning: "装饰", example: "This is how we use the word \"decorate\" in English." },
+    { word: "pressure", meaning: "压力", example: "This is how we use the word \"pressure\" in English." },
+    { word: "obvious", meaning: "明显的", example: "This is how we use the word \"obvious\" in English." },
+    { word: "predict", meaning: "预测", example: "This is how we use the word \"predict\" in English." },
+    { word: "audience", meaning: "观众", example: "This is how we use the word \"audience\" in English." },
+    { word: "contain", meaning: "包含", example: "This is how we use the word \"contain\" in English." },
+    { word: "gesture", meaning: "姿势", example: "This is how we use the word \"gesture\" in English." },
+    { word: "pioneer", meaning: "先锋", example: "This is how we use the word \"pioneer\" in English." },
+    { word: "afford", meaning: "支付得起", example: "This is how we use the word \"afford\" in English." },
+    { word: "affair", meaning: "事情，时间", example: "This is how we use the word \"affair\" in English." },
+    { word: "dependent", meaning: "依赖的", example: "This is how we use the word \"dependent\" in English." },
+    { word: "properly", meaning: "合理的", example: "You must properly store the food in the refrigerator." },
+    { word: "sincerely", meaning: "真诚的", example: "This is how we use the word \"sincerely\" in English." },
+    { word: "severely", meaning: "严厉的", example: "This is how we use the word \"severely\" in English." },
+    { word: "guidance", meaning: "指导", example: "This is how we use the word \"guidance\" in English." },
+    { word: "appearance", meaning: "出现", example: "This is how we use the word \"appearance\" in English." },
+    { word: "astonishment", meaning: "惊讶", example: "This is how we use the word \"astonishment\" in English." },
+    { word: "sharpen", meaning: "使锋利", example: "This is how we use the word \"sharpen\" in English." },
+    { word: "comment", meaning: "评论", example: "This is how we use the word \"comment\" in English." },
+    { word: "privately", meaning: "私人的", example: "This is how we use the word \"privately\" in English." },
+    { word: "frequently", meaning: "频繁的", example: "We meet frequently to discuss progress." },
+    { word: "physical", meaning: "身体的", example: "Regular physical exercise is important." },
+    { word: "donate", meaning: "捐赠", example: "This is how we use the word \"donate\" in English." },
+    { word: "manufacture", meaning: "制造", example: "This is how we use the word \"manufacture\" in English." },
+    { word: "original", meaning: "原始的，起初的", example: "This is how we use the word \"original\" in English." },
+    { word: "effective", meaning: "有效的", example: "This is how we use the word \"effective\" in English." },
+    { word: "object", meaning: "反对", example: "This is how we use the word \"object\" in English." },
+    { word: "typical", meaning: "典型的", example: "This is how we use the word \"typical\" in English." },
+    { word: "possibility", meaning: "可能性", example: "This is how we use the word \"possibility\" in English." },
+    { word: "accidentally", meaning: "意外的，偶然", example: "I accidentally dropped my phone." },
+    { word: "immediately", meaning: "立刻", example: "This is how we use the word \"immediately\" in English." },
+    { word: "concern", meaning: "关心", example: "This is how we use the word \"concern\" in English." },
+    { word: "concentrate", meaning: "集中", example: "This is how we use the word \"concentrate\" in English." },
+    { word: "tragedy", meaning: "悲剧", example: "This is how we use the word \"tragedy\" in English." },
+    { word: "neglect", meaning: "忽视", example: "This is how we use the word \"neglect\" in English." },
+    { word: "approach", meaning: "接近，途径，方法", example: "This is how we use the word \"approach\" in English." },
+    { word: "disturbance", meaning: "打扰", example: "This is how we use the word \"disturbance\" in English." },
+    { word: "arrest", meaning: "逮捕", example: "This is how we use the word \"arrest\" in English." },
+    { word: "restore", meaning: "恢复", example: "This is how we use the word \"restore\" in English." },
+    { word: "available", meaning: "可得到的", example: "Is this seat available?" },
+    { word: "accompany", meaning: "陪伴", example: "This is how we use the word \"accompany\" in English." },
+    { word: "characteristic", meaning: "性格特征", example: "This is how we use the word \"characteristic\" in English." },
+    { word: "automatic", meaning: "自动的", example: "This is how we use the word \"automatic\" in English." },
+    { word: "approve", meaning: "批准，同意", example: "This is how we use the word \"approve\" in English." },
+    { word: "roughly", meaning: "大致的", example: "This is how we use the word \"roughly\" in English." },
+    { word: "indicate", meaning: "暗示", example: "This is how we use the word \"indicate\" in English." },
+    { word: "hesitation", meaning: "犹豫", example: "This is how we use the word \"hesitation\" in English." },
+    { word: "attach", meaning: "系着，附着", example: "This is how we use the word \"attach\" in English." },
+    { word: "plainly", meaning: "朴素的，明显的", example: "This is how we use the word \"plainly\" in English." },
+    { word: "mercy", meaning: "怜悯", example: "This is how we use the word \"mercy\" in English." },
+    { word: "sample", meaning: "样本", example: "This is how we use the word \"sample\" in English." },
+    { word: "considerable", meaning: "相当大的，应考虑的", example: "This is how we use the word \"considerable\" in English." },
+    { word: "enthusiasm", meaning: "热情", example: "This is how we use the word \"enthusiasm\" in English." },
+    { word: "confirm", meaning: "证实", example: "This is how we use the word \"confirm\" in English." },
+    { word: "phenomenon", meaning: "现象", example: "This is how we use the word \"phenomenon\" in English." },
+    { word: "modify", meaning: "修改", example: "This is how we use the word \"modify\" in English." },
+    { word: "annual", meaning: "每年的", example: "This is how we use the word \"annual\" in English." },
+    { word: "isolation", meaning: "孤立", example: "This is how we use the word \"isolation\" in English." },
+    { word: "ceremony", meaning: "仪式", example: "This is how we use the word \"ceremony\" in English." },
+    { word: "acceptable", meaning: "可接受的", example: "Your proposal is acceptable." },
+    { word: "eventually", meaning: "最后", example: "Eventually, you will understand." },
+    { word: "target", meaning: "目标", example: "This is how we use the word \"target\" in English." },
+    { word: "expose", meaning: "暴露", example: "This is how we use the word \"expose\" in English." },
+    { word: "absolutely", meaning: "绝对的", example: "I am absolutely certain about this." },
+    { word: "negative", meaning: "消极的,否定的", example: "This is how we use the word \"negative\" in English." },
+    { word: "steadily", meaning: "稳定的", example: "This is how we use the word \"steadily\" in English." },
+    { word: "consistently", meaning: "一贯，坚持的", example: "This is how we use the word \"consistently\" in English." },
+    { word: "permanently", meaning: "永久的", example: "This is how we use the word \"permanently\" in English." },
+    { word: "professional", meaning: "职业的，专业的", example: "This is how we use the word \"professional\" in English." },
+    { word: "dismiss", meaning: "解除", example: "This is how we use the word \"dismiss\" in English." },
+    { word: "countless", meaning: "数不尽的", example: "This is how we use the word \"countless\" in English." },
+    { word: "thoroughly", meaning: "彻底的", example: "This is how we use the word \"thoroughly\" in English." },
+    { word: "standard", meaning: "标准", example: "This is how we use the word \"standard\" in English." },
+    { word: "tolerate", meaning: "忍受", example: "This is how we use the word \"tolerate\" in English." },
+    { word: "memorable", meaning: "值得纪念的", example: "This is how we use the word \"memorable\" in English." },
+    { word: "leave for", meaning: "离开去到", example: "This is how we use the word \"leave for\" in English." },
+    { word: "adapt", meaning: "适应", example: "This is how we use the word \"adapt\" in English." },
+    { word: "somehow", meaning: "不知怎么的", example: "This is how we use the word \"somehow\" in English." },
+    { word: "somewhat", meaning: "稍微,有点", example: "This is how we use the word \"somewhat\" in English." },
+    { word: "acquire", meaning: "获得", example: "This is how we use the word \"acquire\" in English." },
+    { word: "occupy", meaning: "占据", example: "This is how we use the word \"occupy\" in English." },
+    { word: "accompany", meaning: "陪伴", example: "This is how we use the word \"accompany\" in English." },
+    { word: "urgent", meaning: "紧急的", example: "This is an urgent matter." },
+    { word: "technology", meaning: "技术", example: "This is how we use the word \"technology\" in English." },
+    { word: "giant", meaning: "巨大的", example: "This is how we use the word \"giant\" in English." },
+    { word: "invisible", meaning: "看不见的", example: "This is how we use the word \"invisible\" in English." },
+    { word: "evaluation", meaning: "评估", example: "This is how we use the word \"evaluation\" in English." },
+    { word: "magnificent", meaning: "壮丽的", example: "This is how we use the word \"magnificent\" in English." },
+    { word: "inefficient", meaning: "效率低的", example: "This is how we use the word \"inefficient\" in English." },
+    { word: "nonsense", meaning: "无意义的,荒谬的", example: "This is how we use the word \"nonsense\" in English." },
+    { word: "preserve", meaning: "保护，保存", example: "This is how we use the word \"preserve\" in English." },
+    { word: "career", meaning: "事业", example: "This is how we use the word \"career\" in English." },
+    { word: "profession", meaning: "职业", example: "This is how we use the word \"profession\" in English." },
+    { word: "exhausted", meaning: "筋疲力尽的", example: "This is how we use the word \"exhausted\" in English." },
+    { word: "crash", meaning: "碰撞", example: "This is how we use the word \"crash\" in English." },
+    { word: "suspicious", meaning: "怀疑的", example: "This is how we use the word \"suspicious\" in English." },
+    { word: "requirement", meaning: "要求", example: "This is how we use the word \"requirement\" in English." },
+    { word: "athletic", meaning: "运动的", example: "This is how we use the word \"athletic\" in English." },
+    { word: "prohibit", meaning: "禁止，阻止", example: "This is how we use the word \"prohibit\" in English." },
+    { word: "depressed", meaning: "沮丧的,萧条的", example: "This is how we use the word \"depressed\" in English." },
+    { word: "instruction", meaning: "教诲，传授的知识", example: "This is how we use the word \"instruction\" in English." },
+    { word: "slightly", meaning: "轻微地", example: "The temperature dropped slightly." },
+    { word: "meaningful", meaning: "有意义的", example: "This is how we use the word \"meaningful\" in English." },
+    { word: "principle", meaning: "原则", example: "This is how we use the word \"principle\" in English." },
+    { word: "undeserved", meaning: "不应得的", example: "This is how we use the word \"undeserved\" in English." },
+    { word: "betray", meaning: "背叛", example: "This is how we use the word \"betray\" in English." },
+    { word: "moderate", meaning: "中等的，适度的", example: "This is how we use the word \"moderate\" in English." },
+    { word: "evaluate", meaning: "评价，估价", example: "This is how we use the word \"evaluate\" in English." },
+    { word: "honorable", meaning: "值得尊敬的", example: "This is how we use the word \"honorable\" in English." },
+    { word: "artificial", meaning: "人造的", example: "This is how we use the word \"artificial\" in English." },
+    { word: "concept", meaning: "概念", example: "This is how we use the word \"concept\" in English." },
+    { word: "symbolize", meaning: "象征", example: "This is how we use the word \"symbolize\" in English." },
+    { word: "promising", meaning: "有前途的", example: "This is how we use the word \"promising\" in English." },
+    { word: "conflict", meaning: "冲突", example: "This is how we use the word \"conflict\" in English." },
+    { word: "display", meaning: "显示，陈列", example: "This is how we use the word \"display\" in English." },
+    { word: "definitely", meaning: "明确地，肯定地", example: "This is how we use the word \"definitely\" in English." },
+    { word: "interrupt", meaning: "打断", example: "This is how we use the word \"interrupt\" in English." },
+    { word: "recall", meaning: "回想", example: "This is how we use the word \"recall\" in English." },
+    { word: "recite", meaning: "背诵", example: "This is how we use the word \"recite\" in English." },
+    { word: "resist", meaning: "抵制", example: "This is how we use the word \"resist\" in English." },
+    { word: "desperate", meaning: "绝望的", example: "This is how we use the word \"desperate\" in English." },
+    { word: "elegant", meaning: "优雅的", example: "This is how we use the word \"elegant\" in English." },
+    { word: "attempt", meaning: "试图", example: "This is how we use the word \"attempt\" in English." },
+    { word: "random", meaning: "随机", example: "This is how we use the word \"random\" in English." },
+    { word: "profitable", meaning: "有利可图的", example: "This is how we use the word \"profitable\" in English." },
+    { word: "treasure", meaning: "珍惜，宝藏", example: "This is how we use the word \"treasure\" in English." },
+    { word: "poisonous", meaning: "有毒的", example: "This is how we use the word \"poisonous\" in English." },
+    { word: "dilemma", meaning: "窘境", example: "This is how we use the word \"dilemma\" in English." },
+    { word: "correctly", meaning: "正确的", example: "This is how we use the word \"correctly\" in English." },
+    { word: "system", meaning: "系统", example: "This is how we use the word \"system\" in English." },
+    { word: "complicated", meaning: "复杂的", example: "The instructions are too complicated." },
+    { word: "application", meaning: "申请，应用程序", example: "This is how we use the word \"application\" in English." },
+    { word: "simple", meaning: "简单的", example: "This is how we use the word \"simple\" in English." },
+    { word: "recognize", meaning: "认出，辨认", example: "This is how we use the word \"recognize\" in English." },
+    { word: "cruel", meaning: "残忍的", example: "This is how we use the word \"cruel\" in English." },
+    { word: "comfortable", meaning: "舒服的", example: "This is how we use the word \"comfortable\" in English." },
+    { word: "feared", meaning: "害怕的", example: "This is how we use the word \"feared\" in English." },
+    { word: "replace", meaning: "代替", example: "This is how we use the word \"replace\" in English." },
+    { word: "method", meaning: "方法", example: "This is how we use the word \"method\" in English." },
+    { word: "seize", meaning: "抓住", example: "This is how we use the word \"seize\" in English." },
+    { word: "misunderstand", meaning: "误解", example: "This is how we use the word \"misunderstand\" in English." },
+    { word: "mistake", meaning: "搞错", example: "This is how we use the word \"mistake\" in English." },
+    { word: "imply", meaning: "暗示，表明", example: "This is how we use the word \"imply\" in English." },
+    { word: "disease", meaning: "疾病", example: "This is how we use the word \"disease\" in English." },
+    { word: "repay", meaning: "偿还。报答", example: "This is how we use the word \"repay\" in English." },
+    { word: "describe", meaning: "描述", example: "This is how we use the word \"describe\" in English." },
+    { word: "contract", meaning: "合同", example: "This is how we use the word \"contract\" in English." },
+    { word: "promote", meaning: "促进，提升", example: "This is how we use the word \"promote\" in English." },
+    { word: "sacrifice", meaning: "牺牲", example: "This is how we use the word \"sacrifice\" in English." },
+    { word: "generally", meaning: "一般来说", example: "Generally, I agree with your point." },
+    { word: "trouble", meaning: "麻烦", example: "This is how we use the word \"trouble\" in English." },
+    { word: "pleased", meaning: "满意的", example: "This is how we use the word \"pleased\" in English." },
+    { word: "certainly", meaning: "肯定地，当然", example: "This is how we use the word \"certainly\" in English." },
+    { word: "national", meaning: "国内的", example: "This is how we use the word \"national\" in English." },
+    { word: "cultural", meaning: "文化的", example: "This is how we use the word \"cultural\" in English." },
+    { word: "entrance", meaning: "入口", example: "This is how we use the word \"entrance\" in English." },
+    { word: "annoying", meaning: "恼怒的", example: "This is how we use the word \"annoying\" in English." },
+    { word: "politely", meaning: "有礼貌的", example: "This is how we use the word \"politely\" in English." },
+    { word: "unconsciously", meaning: "无意识的", example: "This is how we use the word \"unconsciously\" in English." },
+    { word: "patiently", meaning: "有耐心的", example: "This is how we use the word \"patiently\" in English." },
+    { word: "theory", meaning: "理论", example: "This is how we use the word \"theory\" in English." },
+    { word: "classification", meaning: "分类", example: "This is how we use the word \"classification\" in English." },
+    { word: "smart", meaning: "聪明的", example: "This is how we use the word \"smart\" in English." },
+    { word: "mature", meaning: "成熟的", example: "This is how we use the word \"mature\" in English." },
+    { word: "average", meaning: "平均", example: "This is how we use the word \"average\" in English." },
+    { word: "creative", meaning: "有创造力的", example: "This is how we use the word \"creative\" in English." },
+    { word: "graduate", meaning: "毕业", example: "This is how we use the word \"graduate\" in English." },
+    { word: "program", meaning: "节目", example: "This is how we use the word \"program\" in English." },
+    { word: "intelligent", meaning: "智力", example: "This is how we use the word \"intelligent\" in English." },
+    { word: "competent", meaning: "能力", example: "This is how we use the word \"competent\" in English." },
+    { word: "independent", meaning: "独立", example: "This is how we use the word \"independent\" in English." },
+    { word: "separate", meaning: "分开，分离", example: "This is how we use the word \"separate\" in English." },
+    { word: "voluntarily", meaning: "自愿的", example: "This is how we use the word \"voluntarily\" in English." },
+    { word: "doubt", meaning: "怀疑", example: "This is how we use the word \"doubt\" in English." },
+    { word: "reflection", meaning: "反映，倒影", example: "This is how we use the word \"reflection\" in English." },
+    { word: "conclusion", meaning: "结论", example: "This is how we use the word \"conclusion\" in English." },
+    { word: "adult", meaning: "成人", example: "This is how we use the word \"adult\" in English." },
+    { word: "talented", meaning: "有天赋的", example: "This is how we use the word \"talented\" in English." },
+    { word: "outstanding", meaning: "出色的", example: "This is how we use the word \"outstanding\" in English." },
+    { word: "expression", meaning: "表达，表情", example: "This is how we use the word \"expression\" in English." },
+    { word: "check", meaning: "检查", example: "This is how we use the word \"check\" in English." },
+    { word: "attend", meaning: "参加", example: "This is how we use the word \"attend\" in English." },
+    { word: "be aware of", meaning: "意识到", example: "This is how we use the word \"be aware of\" in English." },
+    { word: "be fond of", meaning: "喜欢", example: "This is how we use the word \"be fond of\" in English." },
+    { word: "be worthy of", meaning: "值得", example: "This is how we use the word \"be worthy of\" in English." },
+    { word: "expect", meaning: "期待", example: "This is how we use the word \"expect\" in English." },
+    { word: "decision", meaning: "决定", example: "This is how we use the word \"decision\" in English." },
+    { word: "style", meaning: "风格", example: "This is how we use the word \"style\" in English." },
+    { word: "pretend", meaning: "假装", example: "This is how we use the word \"pretend\" in English." },
+    { word: "explain", meaning: "解释", example: "This is how we use the word \"explain\" in English." },
+    { word: "cause", meaning: "原因", example: "This is how we use the word \"cause\" in English." },
+    { word: "perform", meaning: "表演", example: "This is how we use the word \"perform\" in English." },
+    { word: "probably", meaning: "可能地", example: "This is how we use the word \"probably\" in English." },
+    { word: "struggle", meaning: "挣扎，努力", example: "This is how we use the word \"struggle\" in English." },
+    { word: "completely", meaning: "完全地", example: "This is how we use the word \"completely\" in English." },
+    { word: "wonder", meaning: "想知道，不知道", example: "This is how we use the word \"wonder\" in English." },
+    { word: "experience", meaning: "经验，经历", example: "This is how we use the word \"experience\" in English." },
+    { word: "fail", meaning: "失败", example: "This is how we use the word \"fail\" in English." },
+    { word: "develop", meaning: "发展", example: "This is how we use the word \"develop\" in English." },
+    { word: "responsible", meaning: "有责任的", example: "This is how we use the word \"responsible\" in English." },
+    { word: "valuable", meaning: "珍贵的", example: "This is how we use the word \"valuable\" in English." },
+    { word: "ability", meaning: "能力", example: "This is how we use the word \"ability\" in English." },
+    { word: "affect", meaning: "影响", example: "This is how we use the word \"affect\" in English." },
+    { word: "destroy", meaning: "毁坏", example: "This is how we use the word \"destroy\" in English." },
+    { word: "confident", meaning: "自信的", example: "Be confident in your abilities." },
+    { word: "request", meaning: "要求", example: "This is how we use the word \"request\" in English." },
+    { word: "traditional", meaning: "传统的", example: "We follow traditional customs." },
+    { word: "modern", meaning: "现代的", example: "This is how we use the word \"modern\" in English." },
+    { word: "relationship", meaning: "关系", example: "This is how we use the word \"relationship\" in English." },
+    { word: "cooperation", meaning: "合作", example: "This is how we use the word \"cooperation\" in English." },
+    { word: "distinguish", meaning: "区分", example: "This is how we use the word \"distinguish\" in English." },
+    { word: "identify", meaning: "确定，识别", example: "This is how we use the word \"identify\" in English." },
+    { word: "thought", meaning: "想法", example: "This is how we use the word \"thought\" in English." },
+    { word: "discourage", meaning: "使气馁，使沮丧", example: "This is how we use the word \"discourage\" in English." },
+    { word: "prepare", meaning: "准备", example: "This is how we use the word \"prepare\" in English." },
+    { word: "observe", meaning: "观察", example: "This is how we use the word \"observe\" in English." },
+    { word: "energy", meaning: "精力", example: "This is how we use the word \"energy\" in English." },
+    { word: "nervous", meaning: "紧张的", example: "This is how we use the word \"nervous\" in English." },
+    { word: "proud", meaning: "自豪的", example: "This is how we use the word \"proud\" in English." },
+    { word: "nan", meaning: "nan", example: "This is how we use the word \"nan\" in English." },
+    { word: "英文词汇及短语示例", meaning: "中文释义", example: "This is how we use the word \"英文词汇及短语示例\" in English." },
+    { word: "look, see, watch, notice, stare, observe", meaning: "看（各种状态的看）", example: "This is how we use the word \"look, see, watch, notice, stare, observe\" in English." },
+    { word: "listen to, hear, overhear", meaning: "听的动作、结果、无意听到", example: "This is how we use the word \"listen to, hear, overhear\" in English." },
+    { word: "feel, sense, guess, realize, understand", meaning: "感觉，意识到，理解", example: "This is how we use the word \"feel, sense, guess, realize, understand\" in English." },
+    { word: "tell, talk, say, speak, whisper, discuss, argue", meaning: "说，交谈，耳语，讨论", example: "This is how we use the word \"tell, talk, say, speak, whisper, discuss, argue\" in English." },
+    { word: "ask, interview, express, question, answer, reply", meaning: "询问，表达，回答，回复", example: "This is how we use the word \"ask, interview, express, question, answer, reply\" in English." },
+    { word: "take, bring, hold, fetch, lift, put, lay", meaning: "拿走，拿来，举着，放置", example: "This is how we use the word \"take, bring, hold, fetch, lift, put, lay\" in English." },
+    { word: "take hold of, seize, grasp, scratch", meaning: "抓着，紧抓，握住，抠", example: "This is how we use the word \"take hold of, seize, grasp, scratch\" in English." },
+    { word: "hit, beat, strike, blow, attack", meaning: "打击，不间断打，突然击打", example: "This is how we use the word \"hit, beat, strike, blow, attack\" in English." },
+    { word: "touch, fold, embrace, hug", meaning: "触摸，折叠，拥抱", example: "This is how we use the word \"touch, fold, embrace, hug\" in English." },
+    { word: "walk, run, climb, jump, slip, move, drive", meaning: "走，跑，爬，跳，溜，搬迁", example: "This is how we use the word \"walk, run, climb, jump, slip, move, drive\" in English." },
+    { word: "arrive at, reach, get to, return to, leave", meaning: "到达，回到，离开", example: "This is how we use the word \"arrive at, reach, get to, return to, leave\" in English." },
+    { word: "like, love, be fond of, adore, prefer", meaning: "喜欢，喜爱，更喜欢", example: "This is how we use the word \"like, love, be fond of, adore, prefer\" in English." },
+    { word: "dislike, hate, ignore", meaning: "不喜欢，讨厌，忽视", example: "This is how we use the word \"dislike, hate, ignore\" in English." },
+    { word: "admire, respect, envy", meaning: "钦佩，尊重，嫉妒", example: "This is how we use the word \"admire, respect, envy\" in English." },
+    { word: "develop, improve, become, grow", meaning: "发展，改进，变得", example: "This is how we use the word \"develop, improve, become, grow\" in English." },
+    { word: "exist, appear, survive, disappear, die out", meaning: "存在，出现，幸存，消失，灭绝", example: "This is how we use the word \"exist, appear, survive, disappear, die out\" in English." },
+    { word: "get, obtain, acquire, lose, pass away", meaning: "获得，失去，去世", example: "This is how we use the word \"get, obtain, acquire, lose, pass away\" in English." },
+    { word: "succeed, win, make it, fail, defeat", meaning: "成功，赢得，失败，击败", example: "This is how we use the word \"succeed, win, make it, fail, defeat\" in English." },
+    { word: "clerk, secretary, manager, customer, patient, staff", meaning: "职员，秘书，经理，顾客，病人", example: "This is how we use the word \"clerk, secretary, manager, customer, patient, staff\" in English." },
+    { word: "clinic, hospital, airport, kitchen, apartment", meaning: "诊所，医院，机场，厨房，公寓", example: "This is how we use the word \"clinic, hospital, airport, kitchen, apartment\" in English." },
+    { word: "ambition, courage, patience, determination, energy", meaning: "野心，勇气，耐心，决心，精力", example: "This is how we use the word \"ambition, courage, patience, determination, energy\" in English." }
+];
+
+// Total words: 552
+
+        // 学习状态管理
+        let currentMode = 'learn';
+        let currentIndex = 0;
+        let isFlipped = false;
+        let learnedWords = new Set();
+        let reviewSchedule = {};
+        let wordStatus = {}; // 'new', 'learning', 'reviewing', 'mastered'
+
+        // 初始化词汇状态
+        vocabularyData.forEach((word, index) => {
+            wordStatus[index] = {
+                status: 'new',
+                interval: 1,
+                easeFactor: 2.5,
+                nextReview: Date.now(),
+                reviewCount: 0,
+                successCount: 0
+            };
+        });
+
+        // 初始化
+        function init() {
+            updateStats();
+            loadCard();
+            updateProgress();
+        }
+
+        // 切换模式
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            document.getElementById('learnModeBtn').classList.toggle('active', mode === 'learn');
+            document.getElementById('reviewModeBtn').classList.toggle('active', mode === 'review');
+            document.getElementById('reviewSchedule').style.display = mode === 'review' ? 'block' : 'none';
+            
+            if (mode === 'review') {
+                updateReviewTable();
+                currentIndex = findNextDueCard();
+            } else {
+                currentIndex = findNextNewCard();
+            }
+            
+            loadCard();
+            updateProgress();
+        }
+
+        // 查找下一个新单词
+        function findNextNewCard() {
+            for (let i = 0; i < vocabularyData.length; i++) {
+                if (wordStatus[i].status === 'new' || wordStatus[i].status === 'learning') {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        // 查找下一个待复习的单词
+        function findNextDueCard() {
+            const now = Date.now();
+            for (let i = 0; i < vocabularyData.length; i++) {
+                if (wordStatus[i].status === 'learning' || wordStatus[i].status === 'reviewing') {
+                    if (wordStatus[i].nextReview <= now) {
+                        return i;
+                    }
+                }
+            }
+            return 0;
+        }
+
+        // 加载卡片
+        function loadCard() {
+            const wordData = vocabularyData[currentIndex];
+            const status = wordStatus[currentIndex];
+            
+            document.getElementById('cardWord').textContent = wordData.word;
+            document.getElementById('cardPronunciation').textContent = `/${wordData.word}/`;
+            document.getElementById('cardExample').textContent = wordData.example;
+            document.getElementById('cardMeaning').textContent = wordData.meaning;
+            
+            // 重置卡片状态
+            isFlipped = false;
+            document.getElementById('flashcard').classList.remove('flipped');
+            
+            updateButtons();
+        }
+
+        // 翻转卡片
+        function flipCard() {
+            isFlipped = !isFlipped;
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        // 更新按钮状态
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn').disabled = currentIndex === vocabularyData.length - 1;
+        }
+
+        // 上一个卡片
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                loadCard();
+            }
+        }
+
+        // 下一个卡片
+        function nextCard() {
+            if (currentIndex < vocabularyData.length - 1) {
+                currentIndex++;
+                loadCard();
+            }
+        }
+
+        // 标记为认识
+        function markAsKnow() {
+            const status = wordStatus[currentIndex];
+            
+            status.successCount++;
+            status.reviewCount++;
+            
+            // 艾宾浩斯算法更新
+            if (status.interval === 1) {
+                status.interval = 2;
+            } else {
+                status.interval = Math.round(status.interval * status.easeFactor);
+            }
+            
+            if (status.successCount >= 3) {
+                status.status = 'mastered';
+                learnedWords.add(currentIndex);
+            } else {
+                status.status = 'reviewing';
+            }
+            
+            status.nextReview = Date.now() + status.interval * 24 * 60 * 60 * 1000; // 转换为毫秒
+            
+            updateStats();
+            updateProgress();
+            moveToNextCard();
+        }
+
+        // 标记为不认识
+        function markAsForgot() {
+            const status = wordStatus[currentIndex];
+            
+            status.successCount = 0;
+            status.reviewCount++;
+            status.interval = 1;
+            status.easeFactor = Math.max(1.3, status.easeFactor - 0.2);
+            status.status = 'learning';
+            status.nextReview = Date.now() + 1 * 24 * 60 * 60 * 1000; // 1天后复习
+            
+            updateStats();
+            updateProgress();
+            moveToNextCard();
+        }
+
+        // 移动到下一张卡片
+        function moveToNextCard() {
+            if (currentMode === 'learn') {
+                currentIndex = findNextNewCard();
+                if (currentIndex === 0 && wordStatus[0].status === 'mastered') {
+                    alert('🎉 恭喜！所有单词已完成学习！');
+                }
+            } else {
+                currentIndex = findNextDueCard();
+                updateReviewTable();
+            }
+            
+            loadCard();
+        }
+
+        // 播放音频
+        function playAudio(type) {
+            const wordData = vocabularyData[currentIndex];
+            const text = type === 'word' ? wordData.word : wordData.meaning;
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            if (type === 'word') {
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+            } else {
+                utterance.lang = 'zh-CN';
+                utterance.rate = 1.0;
+            }
+            
+            speechSynthesis.speak(utterance);
+        }
+
+        // 更新统计
+        function updateStats() {
+            const total = vocabularyData.length;
+            const mastered = learnedWords.size;
+            const review = vocabularyData.filter((_, i) => {
+                const status = wordStatus[i];
+                return status.status === 'learning' || status.status === 'reviewing';
+            }).length;
+            
+            document.getElementById('totalWords').textContent = total;
+            document.getElementById('masteredWords').textContent = mastered;
+            document.getElementById('reviewWords').textContent = review;
+        }
+
+        // 更新进度
+        function updateProgress() {
+            const total = vocabularyData.length;
+            let progress = 0;
+            let label = '学习进度';
+            
+            if (currentMode === 'learn') {
+                const learned = vocabularyData.filter((_, i) => 
+                    wordStatus[i].status !== 'new'
+                ).length;
+                progress = Math.round((learned / total) * 100);
+            } else {
+                const dueCards = vocabularyData.filter((_, i) => {
+                    const status = wordStatus[i];
+                    const now = Date.now();
+                    return (status.status === 'learning' || status.status === 'reviewing') && 
+                           status.nextReview <= now;
+                }).length;
+                progress = dueCards === 0 ? 100 : Math.round(((vocabularyData.length - dueCards) / vocabularyData.length) * 100);
+                label = '复习进度';
+            }
+            
+            document.getElementById('progressLabel').textContent = label;
+            document.getElementById('progressPercent').textContent = progress + '%';
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // 更新复习表
+        function updateReviewTable() {
+            const tbody = document.getElementById('reviewTableBody');
+            tbody.innerHTML = '';
+            
+            const now = Date.now();
+            const reviewWords = vocabularyData.map((word, i) => ({
+                word,
+                index: i,
+                status: wordStatus[i]
+            })).filter(item => item.status.status !== 'new')
+              .sort((a, b) => a.status.nextReview - b.status.nextReview);
+            
+            reviewWords.forEach(item => {
+                const dueDate = new Date(item.status.nextReview);
+                const isDue = item.status.nextReview <= now;
+                const daysLeft = Math.ceil((item.status.nextReview - now) / (24 * 60 * 60 * 1000));
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.word}</td>
+                    <td><span class="badge ${getStatusBadgeClass(item.status.status)}">${getStatusText(item.status.status)}</span></td>
+                    <td class="${isDue ? 'schedule-due' : 'schedule-ok'}">${dueDate.toLocaleDateString()}</td>
+                    <td>${daysLeft <= 0 ? '今天' : daysLeft + '天后'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 获取状态徽章样式
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'new': return 'badge-new';
+                case 'learning': return 'badge-review';
+                case 'reviewing': return 'badge-review';
+                case 'mastered': return 'badge-mastered';
+                default: return '';
+            }
+        }
+
+        // 获取状态文本
+        function getStatusText(status) {
+            switch(status) {
+                case 'new': return '新词';
+                case 'learning': return '学习中';
+                case 'reviewing': return '复习中';
+                case 'mastered': return '已掌握';
+                default: return status;
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = init;
+    </script>
+</body>
+</html>
